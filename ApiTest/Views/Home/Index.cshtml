@@ -1,0 +1,140 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio</title>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/Site.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h1>Bienvenido a nuestra tienda en línea</h1>
+            <p>Aquí encontrarás una gran variedad de productos a excelentes precios</p>
+
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody id="productos"></tbody>
+        </table>
+        <!-- Agrega este botón en la vista -->
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#nuevoProductoModal">
+            Nuevo producto
+        </button>
+        <!-- Agrega este modal en la misma vista -->
+        <div class="modal fade" id="nuevoProductoModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Nuevo producto</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="nombre">Nombre</label>
+                                <input type="text" class="form-control" id="nombre">
+                            </div>
+                            <div class="form-group">
+                                <label for="precio">Precio</label>
+                                <input type="text" class="form-control" id="precio">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        <button type="button" class="btn btn-primary" id="guardarProducto">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script src="~/Scripts/bootstrap.min.js"></script>
+</body>
+</html>
+
+<script>
+    function cargarProductos() {
+        $.ajax({
+            url: '/api/Prueba',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                var productos = $('#productos');
+                productos.empty();
+                $.each(data, function (index, producto) {
+                    productos.append(
+                        '<tr>' +
+                        '<td>' + producto.Id + '</td>' +
+                        '<td>' + producto.Nombre + '</td>' +
+                        '<td>' + producto.Precio + '</td>' +
+                        '<td><button type="button" class="btn btn-danger eliminarProducto" data-id="' + producto.Id + '">Eliminar</button></td>' +
+                        '</tr>'
+                    );
+                });
+            },
+            error: function (xhr, status, error) {
+                console.log(xhr.responseText);
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        // cargar productos al cargar la página
+        cargarProductos();
+
+        // agregar un nuevo producto
+        $('#guardarProducto').click(function () {
+            var nombre = $('#nombre').value();
+            var precio = $('#precio').value();
+
+            $.ajax({
+                url: '/api/Prueba',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify({ Nombre: nombre, Precio: precio }),
+                success: function (data) {
+                    // recargar la lista de productos
+                    cargarProductos();
+                    // cerrar el modal
+                    $('#nuevoProductoModal').modal('hide');
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr.responseText);
+                }
+            });
+        });
+
+        // eliminar un producto
+        $('#productos').on('click', '.eliminarProducto', function () {
+            var id = $(this).data('id');
+            $.ajax({
+                url: '/api/Prueba/' + id,
+                type: 'DELETE',
+                success: function (data) {
+                    // recargar la lista de productos
+                    cargarProductos();
+                },
+                error: function (xhr, status, error) {
+                    console.log(xhr.responseText);
+                }
+            });
+        });
+        cargarProductos();
+    });
+
+</script>
+
